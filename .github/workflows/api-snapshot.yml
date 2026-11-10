@@ -1,0 +1,32 @@
+name: "api snapshot"
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 17 * * 1-5'
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  snapshot:
+    name: Catalog and OpenAPI document
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Keep schedule enabled
+        run: gh api -X PUT repos/${{ github.repository }}/actions/workflows/api-snapshot.yml/enable
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Checkout Code
+        uses: actions/checkout@v7
+
+      - name: Fetch catalog
+        run: curl -fsS --retry 3 -A henzeb/housepedia-data-intelligence https://huispedia.dev/v5/catalog | python3 -c 'import json,sys; json.dump(json.load(sys.stdin), sys.stdout, indent=2, sort_keys=True, ensure_ascii=False); print()' > snapshots/v5/catalog.json
+
+      - name: Fetch OpenAPI document
+        run: curl -fsS --retry 3 -A henzeb/housepedia-data-intelligence https://huispedia.dev/openapi.json | python3 -c 'import json,sys; json.dump(json.load(sys.stdin), sys.stdout, indent=2, sort_keys=True, ensure_ascii=False); print()' > snapshots/v5/openapi.json
+
+      - name: Compare with snapshots
+        run: git diff --exit-code snapshots/

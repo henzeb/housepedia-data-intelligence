@@ -1,0 +1,745 @@
+#!/usr/bin/env php
+<?php
+
+require __DIR__ . '/../vendor/autoload.php';
+
+const NS = 'Henzeb\\Housepedia\\Data\\Intelligence\\';
+const ROOT = __DIR__ . '/../';
+
+const AREAS = [
+    'addresses' => ['title' => 'Addresses', 'resources' => ['Addresses'], 'enums' => ['SuggestionType']],
+    'properties' => ['title' => 'Properties', 'resources' => ['Properties'], 'enums' => ['PropertyFieldGroup', 'ReferenceSort']],
+    'buildings' => ['title' => 'Buildings', 'resources' => ['Buildings'], 'enums' => []],
+    'areas' => ['title' => 'Areas', 'resources' => ['Areas', 'PostcodeArea'], 'enums' => ['TrendMetric']],
+    'valuations' => ['title' => 'Valuations', 'resources' => ['Valuations'], 'enums' => []],
+    'account' => ['title' => 'Account', 'resources' => ['Account', 'LazyAccount'], 'enums' => ['UsageGrouping']],
+    'catalog' => ['title' => 'Catalog', 'resources' => [], 'enums' => []],
+];
+
+const SHARED = ['Meta', 'Credits', 'Results', 'ReverseResults'];
+
+const REQUESTS = [
+    'Addresses::find' => ['GET', '/v5/addresses/{locator}', 'getAddress'],
+    'Addresses::findAll' => ['GET', '/v5/addresses/{locator}', 'getAddress'],
+    'Addresses::suggest' => ['GET', '/v5/addresses/suggest', 'suggestAddresses'],
+    'Addresses::reverse' => ['GET', '/v5/addresses/reverse', 'reverseGeocode'],
+    'Properties::find' => ['GET', '/v5/properties/{locator}', 'getProperty'],
+    'Properties::energyLabel' => ['GET', '/v5/properties/{locator}/energy-label', 'getEnergyLabel'],
+    'Properties::woz' => ['GET', '/v5/properties/{locator}/woz', 'getWoz'],
+    'Properties::condition' => ['GET', '/v5/properties/{locator}/condition', 'getCondition'],
+    'Properties::transactions' => ['GET', '/v5/properties/{locator}/transactions', 'getTransactions'],
+    'Properties::hasTransactions' => ['HEAD', '/v5/properties/{locator}/transactions', 'headTransactions'],
+    'Properties::valuation' => ['GET', '/v5/properties/{locator}/valuation', 'getValuation'],
+    'Properties::valuationPlus' => ['GET', '/v5/properties/{locator}/valuation/plus', 'getValuationPlus'],
+    'Properties::valuationHistory' => ['GET', '/v5/properties/{locator}/valuation/history', 'getValuationHistory'],
+    'Properties::references' => ['GET', '/v5/properties/{locator}/references', 'getReferences'],
+    'Properties::surroundings' => ['GET', '/v5/properties/{locator}/surroundings', 'getSurroundings'],
+    'Properties::environment' => ['GET', '/v5/properties/{locator}/environment', 'getEnvironment'],
+    'Buildings::find' => ['GET', '/v5/buildings/{bag_pand_id}', 'getBuilding'],
+    'Areas::lookupPostcode' => ['GET', '/v5/areas/lookup', 'lookupArea'],
+    'Areas::lookupCoordinates' => ['GET', '/v5/areas/lookup', 'lookupArea'],
+    'Areas::find' => ['GET', '/v5/areas/{area}', 'getArea'],
+    'Areas::stats' => ['GET', '/v5/areas/{area}/stats', 'getAreaStats'],
+    'Areas::trends' => ['GET', '/v5/areas/{area}/trends', 'getAreaTrends'],
+    'Areas::demographics' => ['GET', '/v5/areas/{area}/demographics', 'getAreaDemographics'],
+    'PostcodeArea::find' => ['GET', '/v5/areas/{area}', 'getArea'],
+    'Valuations::scenarios' => ['POST', '/v5/valuations/scenarios', 'createScenarioValuations'],
+    'Account::details' => ['GET', '/v5/account', 'getAccount'],
+    'Account::usage' => ['GET', '/v5/account/usage', 'getAccountUsage'],
+    'Account::requests' => ['GET', '/v5/account/requests', 'getAccountRequests'],
+    'LazyAccount::requests' => ['GET', '/v5/account/requests', 'getAccountRequests'],
+    'Client::catalog' => ['GET', '/v5/catalog', 'getCatalog'],
+];
+
+const DESCRIPTIONS = [
+    'Addresses::findAll' => 'Every home at the postcode and house number',
+    'LazyAccount::requests' => 'Every entry of the request log, read page by page',
+];
+
+const BUILDERS = [
+    'withLocator' => 'Returns a copy for the home or area of the locator.',
+    'withPostcode' => 'Returns a copy for the home at the postcode, house number and extension.',
+    'withBagId' => 'Returns a copy for the home with the BAG id.',
+    'withBagPandId' => 'Returns a copy for the building with the BAG pand id.',
+    'withArea' => 'Returns a copy for the area of the locator.',
+    'withNeighbourhood' => 'Returns a copy for the neighbourhood with the CBS code.',
+    'withDistrict' => 'Returns a copy for the district with the CBS code.',
+    'withMunicipality' => 'Returns a copy for the municipality with the CBS code.',
+    'withProvince' => 'Returns a copy for the province with the code.',
+    'national' => 'Returns a copy for the Netherlands.',
+    'withPostcode4' => 'Returns a `PostcodeArea` for the four-digit postcode.',
+    'withPostcode6' => 'Returns a `PostcodeArea` for the six-character postcode.',
+    'lazy' => 'Returns a `LazyAccount`, which reads paged lists page by page.',
+    'withMaxCacheAge' => 'Returns a copy that keeps answers at most this many seconds in the cache.',
+    'withoutCache' => 'Returns a copy that neither reads nor writes the cache.',
+];
+
+const RATE_LIMIT = [
+    'limit' => ['X-RateLimit-Limit', 'The number of requests the bucket of the account holds.'],
+    'remaining' => ['X-RateLimit-Remaining', 'The number of requests left in the bucket.'],
+    'resetInSeconds' => ['X-RateLimit-Reset', 'The seconds until the bucket is full again.'],
+    'resetsAt' => ['', 'The time the answer was received plus `resetInSeconds()`.'],
+];
+
+$descriptions = require __DIR__ . '/reference-descriptions.php';
+$document = json_decode((string)file_get_contents(ROOT . 'snapshots/v5/openapi.json'), true, flags: JSON_THROW_ON_ERROR);
+
+function shortName(string $class): string
+{
+    return substr($class, (int)strrpos($class, '\\') + 1);
+}
+
+function resolveSchema(array $schema): array
+{
+    global $document;
+
+    if (isset($schema['$ref'])) {
+        return resolveSchema($document['components']['schemas'][substr($schema['$ref'], strlen('#/components/schemas/'))]);
+    }
+
+    foreach (['anyOf', 'oneOf'] as $keyword) {
+        foreach ($schema[$keyword] ?? [] as $variant) {
+            if (($variant['type'] ?? null) !== 'null') {
+                return resolveSchema($variant);
+            }
+        }
+    }
+
+    return $schema;
+}
+
+function schemaDescription(array $schema): string
+{
+    $description = $schema['description'] ?? null;
+
+    if ($description === null) {
+        foreach (['anyOf', 'oneOf'] as $keyword) {
+            foreach ($schema[$keyword] ?? [] as $variant) {
+                $description ??= $variant['description'] ?? null;
+            }
+        }
+    }
+
+    return str_replace(['<', '>'], ['&lt;', '&gt;'], trim(preg_replace('/\s+/', ' ', (string)$description)));
+}
+
+function splitArguments(string $source): array
+{
+    $arguments = [];
+    $depth = 0;
+    $current = '';
+
+    foreach (str_split($source) as $character) {
+        if ($character === '(' || $character === '[') {
+            $depth++;
+        }
+
+        if ($character === ')' || $character === ']') {
+            $depth--;
+        }
+
+        if ($character === ',' && $depth === 0) {
+            $arguments[] = trim($current);
+            $current = '';
+            continue;
+        }
+
+        $current .= $character;
+    }
+
+    if (trim($current) !== '') {
+        $arguments[] = trim($current);
+    }
+
+    return $arguments;
+}
+
+function fieldKeys(string $class): array
+{
+    $reflection = new ReflectionClass($class);
+    $factory = $reflection->hasMethod('from') && $reflection->getMethod('from')->getDeclaringClass()->getName() === $class
+        ? $reflection->getMethod('from')
+        : ($reflection->hasMethod('of') ? $reflection->getMethod('of') : null);
+
+    if ($factory === null) {
+        return [];
+    }
+
+    $lines = file((string)$factory->getFileName());
+    $body = implode('', array_slice($lines, $factory->getStartLine() - 1, $factory->getEndLine() - $factory->getStartLine() + 1));
+
+    if (!preg_match('/new self\((.*)\);/s', $body, $matches)) {
+        return [];
+    }
+
+    $parameters = array_map(fn (ReflectionParameter $parameter) => $parameter->getName(), $reflection->getConstructor()?->getParameters() ?? []);
+    $keys = [];
+
+    foreach (splitArguments($matches[1]) as $index => $argument) {
+        if (isset($parameters[$index]) && preg_match("/'([^']+)'/", $argument, $key)) {
+            $keys[$parameters[$index]] = $key[1];
+        }
+    }
+
+    return $keys;
+}
+
+function v5Class(string $contract): ?string
+{
+    $relative = substr($contract, strlen(NS . 'Contracts\\'));
+    $class = str_starts_with($relative, 'DTO\\') ? NS . 'V5\\' . $relative : NS . 'V5\\Resources\\' . $relative;
+
+    return class_exists($class) ? $class : null;
+}
+
+function docTag(string $doc, string $tag, ?string $variable = null): ?string
+{
+    foreach (explode("\n", $doc) as $line) {
+        $position = strpos($line, '@' . $tag . ' ');
+
+        if ($position === false) {
+            continue;
+        }
+
+        $text = ltrim(substr($line, $position + strlen($tag) + 2));
+        $depth = 0;
+        $type = '';
+
+        foreach (str_split($text) as $character) {
+            if ($character === ' ' && $depth === 0) {
+                break;
+            }
+
+            $depth += $character === '<' ? 1 : ($character === '>' ? -1 : 0);
+            $type .= $character;
+        }
+
+        if ($variable === null || str_starts_with(ltrim(substr($text, strlen($type))), '$' . $variable)) {
+            return $type;
+        }
+    }
+
+    return null;
+}
+
+function docType(ReflectionMethod $method): ?string
+{
+    return docTag((string)$method->getDocComment(), 'return');
+}
+
+function typeOf(ReflectionMethod $method): string
+{
+    $type = docType($method) ?? (string)$method->getReturnType();
+
+    return preg_replace_callback('/[A-Za-z_\\\\][A-Za-z0-9_\\\\]*/', fn ($match) => str_contains($match[0], '\\') ? shortName($match[0]) : $match[0], $type);
+}
+
+function referencedContracts(ReflectionMethod $method): array
+{
+    $names = [];
+    $text = (docType($method) ?? '') . ' ' . $method->getReturnType();
+    preg_match_all('/[A-Z][A-Za-z0-9]*/', $text, $matches);
+    $namespace = $method->getDeclaringClass()->getNamespaceName();
+
+    foreach (array_unique($matches[0]) as $name) {
+        foreach ([NS . 'Contracts\\DTO\\' . $name, NS . 'Contracts\\DTO\\Catalog\\' . $name, $namespace . '\\' . $name] as $candidate) {
+            if (interface_exists($candidate) && str_contains($candidate, '\\DTO\\')) {
+                $names[] = $candidate;
+                break;
+            }
+        }
+    }
+
+    return array_values(array_unique($names));
+}
+
+$objects = [];
+
+function walk(string $contract, ?array $schema): void
+{
+    global $objects;
+
+    if (isset($objects[$contract]) && ($objects[$contract]['schema'] !== null || $schema === null)) {
+        return;
+    }
+
+    $objects[$contract] = ['schema' => $schema];
+    $class = v5Class($contract);
+    $keys = $class === null ? [] : fieldKeys($class);
+    $properties = $schema === null ? [] : (resolveSchema($schema)['properties'] ?? []);
+
+    foreach ((new ReflectionClass($contract))->getMethods() as $method) {
+        if ($method->isStatic() || !str_starts_with($method->getDeclaringClass()->getName(), NS)) {
+            continue;
+        }
+
+        foreach (referencedContracts($method) as $child) {
+            $key = $method->getName() === 'data' ? 'data' : ($keys[$method->getName()] ?? null);
+            $childSchema = null;
+
+            if ($key !== null && isset($properties[$key])) {
+                $property = resolveSchema($properties[$key]);
+                $isMap = ($property['type'] ?? null) === 'object' && is_array($property['additionalProperties'] ?? null) && !isset($property['properties']);
+                $childSchema = match (true) {
+                    ($property['type'] ?? null) === 'array' => $property['items'] ?? null,
+                    $isMap => $property['additionalProperties'],
+                    default => $properties[$key],
+                };
+            }
+
+            walk($child, $childSchema);
+        }
+    }
+}
+
+function operationSchema(string $operationId): ?array
+{
+    global $document;
+
+    foreach ($document['paths'] as $operations) {
+        foreach ($operations as $operation) {
+            if (is_array($operation) && ($operation['operationId'] ?? null) === $operationId) {
+                return $operation['responses']['200']['content']['application/json']['schema'] ?? null;
+            }
+        }
+    }
+
+    return null;
+}
+
+function operationSummary(string $operationId): string
+{
+    global $document;
+
+    foreach ($document['paths'] as $operations) {
+        foreach ($operations as $operation) {
+            if (is_array($operation) && ($operation['operationId'] ?? null) === $operationId) {
+                return trim(preg_replace(['/\s+/', '/\s*\(free\)/i'], [' ', ''], (string)($operation['summary'] ?? '')));
+            }
+        }
+    }
+
+    return '';
+}
+
+$resourceMethods = [];
+
+foreach (AREAS as $area => $definition) {
+    $resourceMethods[$area] = $area === 'catalog' ? [[null, new ReflectionMethod(NS . 'Client', 'catalog')]] : [];
+
+    foreach ($definition['resources'] as $resource) {
+        foreach ((new ReflectionClass(NS . 'Contracts\\' . $resource))->getMethods() as $method) {
+            $resourceMethods[$area][] = [$resource, $method];
+        }
+    }
+}
+
+$areaOf = [];
+$known = [];
+
+foreach (AREAS as $area => $definition) {
+    $objects = [];
+
+    foreach ($resourceMethods[$area] as [$resource, $method]) {
+        $request = REQUESTS[($resource ?? 'Client') . '::' . $method->getName()] ?? null;
+        $schema = $request === null ? null : operationSchema($request[2]);
+        $contracts = $method->getName() === 'catalog' ? [NS . 'Contracts\\DTO\\Catalog\\Catalog'] : referencedContracts($method);
+
+        foreach ($contracts as $contract) {
+            walk($contract, $schema);
+        }
+    }
+
+    foreach ($objects as $object => $info) {
+        $areaOf[$object][$area] = true;
+
+        if (!isset($known[$object]) || $known[$object]['schema'] === null) {
+            $known[$object] = $info;
+        }
+    }
+}
+
+$objects = $known;
+
+$placement = [];
+
+foreach ($areaOf as $object => $areas) {
+    $placement[$object] = count($areas) > 1 || in_array(shortName($object), SHARED, true) ? 'shared' : array_key_first($areas);
+}
+
+$placement['RateLimit'] = 'shared';
+
+function sectionLink(string $name, string $from): string
+{
+    global $placement;
+
+    foreach ($placement as $object => $file) {
+        if ($object !== 'RateLimit' && shortName($object) === $name || $object === 'RateLimit' && $name === 'RateLimit') {
+            return '[`' . $name . '`](' . ($file === $from ? '' : $file . '.md') . '#' . strtolower($name) . ')';
+        }
+    }
+
+    return '`' . $name . '`';
+}
+
+function linkedType(string $type, string $from): string
+{
+    $parts = preg_split('/([A-Za-z_][A-Za-z0-9_]*)/', $type, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+    $output = '';
+    $buffer = '';
+
+    foreach ($parts as $part) {
+        if (preg_match('/^[A-Z][A-Za-z0-9_]*$/', $part) && str_starts_with(sectionLink($part, $from), '[')) {
+            $output .= ($buffer === '' ? '' : '`' . $buffer . '`') . sectionLink($part, $from);
+            $buffer = '';
+            continue;
+        }
+
+        $buffer .= $part;
+    }
+
+    return $output . ($buffer === '' ? '' : '`' . $buffer . '`');
+}
+
+function cell(string $text): string
+{
+    return str_replace(['|', "\n"], ['\\|', ' '], $text);
+}
+
+function signature(ReflectionMethod $method): string
+{
+    $parameters = [];
+
+    foreach ($method->getParameters() as $parameter) {
+        $native = (string)$parameter->getType();
+        $documented = in_array($native, ['array', 'iterable'], true) ? docTag((string)$method->getDocComment(), 'param', $parameter->getName()) : null;
+        $type = preg_replace_callback('/[A-Za-z_\\\\][A-Za-z0-9_\\\\]*/', fn ($match) => str_contains($match[0], '\\') ? shortName($match[0]) : $match[0], $documented ?? $native);
+        $text = trim($type . ' $' . $parameter->getName());
+
+        if ($parameter->isDefaultValueAvailable()) {
+            $default = $parameter->getDefaultValue();
+            $text .= ' = ' . match (true) {
+                $default === null => 'null',
+                $default === [] => '[]',
+                is_bool($default) => $default ? 'true' : 'false',
+                default => var_export($default, true),
+            };
+        }
+
+        $parameters[] = $text;
+    }
+
+    return $method->getName() . '(' . implode(', ', $parameters) . ')';
+}
+
+function resourceSection(string $area, ?string $resource, array $methods): string
+{
+    $title = $resource === null ? 'Client' : $resource;
+    $output = '<a name="' . strtolower($title) . '-methods"></a>' . "\n### `" . $title . "`\n\n";
+    $output .= "| Method | Returns | Description |\n|--------|---------|-------------|\n";
+
+    foreach ($methods as $method) {
+        $key = $title . '::' . $method->getName();
+        $request = REQUESTS[$key] ?? null;
+
+        if ($request === null && !isset(BUILDERS[$method->getName()])) {
+            throw new RuntimeException('No request or builder description for ' . $key);
+        }
+
+        $description = DESCRIPTIONS[$key] ?? ($request === null ? BUILDERS[$method->getName()] : operationSummary($request[2]));
+
+        $output .= '| `' . cell(signature($method)) . '` | ' . cell(linkedType(typeOf($method), $area)) . ' | ' . cell($description) . " |\n";
+    }
+
+    return $output . "\n";
+}
+
+function objectSection(string $contract, string $file): string
+{
+    global $objects, $descriptions;
+
+    $name = shortName($contract);
+    $reflection = new ReflectionClass($contract);
+    $class = v5Class($contract);
+    $keys = $class === null ? [] : fieldKeys($class);
+    $schema = $objects[$contract]['schema'] ?? null;
+    $properties = $schema === null ? [] : (resolveSchema($schema)['properties'] ?? []);
+    $parents = array_map(fn (ReflectionClass $parent) => shortName($parent->getName()), array_filter(
+        $reflection->getInterfaces(),
+        fn (ReflectionClass $parent) => str_starts_with($parent->getName(), NS),
+    ));
+
+    $output = '<a name="' . strtolower($name) . '"></a>' . "\n### `" . $name . "`\n\n";
+
+    if ($parents !== []) {
+        $output .= 'Extends ' . implode(', ', array_map(fn (string $parent) => sectionLink($parent, $file), array_values($parents))) . ".\n\n";
+    }
+
+    $output .= "| Method | Returns | API field | Description |\n|--------|---------|-----------|-------------|\n";
+
+    foreach ($reflection->getMethods() as $method) {
+        if ($method->isStatic() || $method->getDeclaringClass()->getName() !== $contract) {
+            continue;
+        }
+
+        $key = $keys[$method->getName()] ?? null;
+        $description = '';
+
+        if ($key !== null) {
+            $segments = explode('.', $key);
+            $current = $properties;
+            $property = null;
+
+            foreach ($segments as $index => $segment) {
+                $property = $current[$segment] ?? null;
+                $current = $property === null ? [] : (resolveSchema($property)['properties'] ?? []);
+            }
+
+            $description = $property === null ? '' : schemaDescription($property);
+        }
+
+        if ($description === '') {
+            $description = $descriptions[$name . '::' . $method->getName()] ?? '';
+        }
+
+        if ($name === 'Meta' && $method->getName() === 'rateLimit') {
+            $key = 'X-RateLimit-* headers';
+            $description = 'The rate limit of the account after the call; `null` for an answer from the cache.';
+        }
+
+        if (in_array($name, ['Results', 'ReverseResults'], true)) {
+            $description = match ($method->getName()) {
+                'data' => 'The items of the list.',
+                'meta' => 'The metadata of the answer.',
+                'getIterator' => 'Iterates the items with keys from 0.',
+                'count' => 'The number of items.',
+                'areas' => 'The areas of the coordinate.',
+                default => $description,
+            };
+            $key = match ($method->getName()) {
+                'getIterator', 'count' => null,
+                default => $key,
+            };
+        }
+
+        $output .= '| `' . $method->getName() . '()` | ' . cell(linkedType(typeOf($method), $file)) . ' | '
+            . ($key === null ? '' : '`' . cell($key) . '`') . ' | ' . cell($description) . " |\n";
+    }
+
+    return $output . "\n";
+}
+
+function objectGetters(string $contract): array
+{
+    $getters = [];
+
+    foreach ((new ReflectionClass($contract))->getMethods() as $method) {
+        if (!$method->isStatic() && str_starts_with($method->getDeclaringClass()->getName(), NS) && referencedContracts($method) !== []) {
+            $getters[] = $method;
+        }
+    }
+
+    return $getters;
+}
+
+function tree(ReflectionMethod $method, string $file, array &$expanded, int $depth, ?array $contracts = null): string
+{
+    $indent = str_repeat('  ', $depth);
+    $line = $indent . '- `' . $method->getName() . '()`: ' . linkedType(typeOf($method), $file);
+    $children = '';
+
+    foreach ($contracts ?? referencedContracts($method) as $contract) {
+        if (isset($expanded[$contract])) {
+            continue;
+        }
+
+        $expanded[$contract] = true;
+
+        foreach (objectGetters($contract) as $getter) {
+            $children .= tree($getter, $file, $expanded, $depth + 1);
+        }
+    }
+
+    return $line . "\n" . $children;
+}
+
+function structureSection(string $file, array $methods): string
+{
+    $output = '';
+    $expanded = [];
+
+    foreach ($methods as [$resource, $method]) {
+        $contracts = $method->getName() === 'catalog' ? [NS . 'Contracts\\DTO\\Catalog\\Catalog'] : referencedContracts($method);
+
+        if ($contracts === []) {
+            continue;
+        }
+
+        $output .= tree($method, $file, $expanded, 0, $contracts);
+    }
+
+    return $output === '' ? '' : "## Structure\n\nThe objects each method returns, and the objects inside them. An object is expanded the first time it appears.\n\n" . $output . "\n";
+}
+
+function rateLimitSection(): string
+{
+    $output = '<a name="ratelimit"></a>' . "\n### `RateLimit`\n\n";
+    $output .= "| Method | Returns | Header | Description |\n|--------|---------|--------|-------------|\n";
+    $reflection = new ReflectionClass(NS . 'RateLimit');
+
+    foreach ($reflection->getMethods() as $method) {
+        if ($method->isStatic() || $method->isConstructor() || !$method->isPublic()) {
+            continue;
+        }
+
+        [$header, $description] = RATE_LIMIT[$method->getName()];
+        $output .= '| `' . $method->getName() . '()` | `' . typeOf($method) . '` | ' . ($header === '' ? '' : '`' . $header . '`') . ' | ' . $description . " |\n";
+    }
+
+    return $output . "\n";
+}
+
+function enumSection(string $enum): string
+{
+    $output = '<a name="' . strtolower($enum) . '"></a>' . "\n### `" . $enum . "`\n\n";
+    $output .= 'Implements `Contracts\\Enums\\' . $enum . "`. Every parameter that takes it also accepts the value as a string.\n\n";
+    $output .= "| Case | Value |\n|------|-------|\n";
+
+    foreach ((NS . 'V5\\Enums\\' . $enum)::cases() as $case) {
+        $output .= '| `' . $enum . '::' . $case->name . '` | `' . $case->value . "` |\n";
+    }
+
+    return $output . "\n";
+}
+
+function inputSection(): string
+{
+    global $document;
+
+    $output = "## Input\n\n";
+    $schema = resolveSchema($document['components']['schemas']['ScenariosIn']);
+    $row = resolveSchema($schema['properties']['data']['items']);
+
+    foreach (['ScenarioRow', 'Scenario', 'Characteristics'] as $input) {
+        $class = NS . 'V5\\Input\\' . $input;
+        $output .= '<a name="' . strtolower($input) . '"></a>' . "\n### `" . $input . "`\n\n";
+        $output .= 'Created with `new ' . $input . '(…)`' . ($input === 'ScenarioRow' ? '; implements `Contracts\\Input\\ScenarioRow`' : '') . ".\n\n";
+        $output .= "| Argument | Type | Default | API field | Description |\n|----------|------|---------|-----------|-------------|\n";
+        $source = (string)file_get_contents((string)(new ReflectionClass($class))->getFileName());
+        preg_match_all("/'([a-z0-9_]+)' => \\\$this->(\\w+)/", $source, $pairs, PREG_SET_ORDER);
+        $fields = [];
+
+        foreach ($pairs as $pair) {
+            $fields[$pair[2]] = $pair[1];
+        }
+
+        $properties = $input === 'Scenario' ? (resolveSchema($row['properties']['scenarios']['items'] ?? [])['properties'] ?? []) : ($row['properties'] ?? []);
+
+        $constructor = (new ReflectionClass($class))->getConstructor();
+
+        foreach ($constructor->getParameters() as $parameter) {
+            $native = (string)$parameter->getType();
+            $documented = $native === 'array' ? docTag((string)$constructor->getDocComment(), 'param', $parameter->getName()) : null;
+            $type = preg_replace_callback('/[A-Za-z_\\\\][A-Za-z0-9_\\\\]*/', fn ($match) => str_contains($match[0], '\\') ? shortName($match[0]) : $match[0], $documented ?? $native);
+            $default = '';
+
+            if ($parameter->isDefaultValueAvailable()) {
+                $value = $parameter->getDefaultValue();
+                $default = match (true) {
+                    $value === null => '`null`',
+                    $value === [] => '`[]`',
+                    is_object($value) => '`new ' . shortName($value::class) . '()`',
+                    default => '`' . var_export($value, true) . '`',
+                };
+            }
+
+            $field = $fields[$parameter->getName()] ?? ($parameter->getName() === 'locator' ? 'locator' : ($parameter->getName() === 'name' ? 'name' : ($parameter->getName() === 'scenarios' ? 'scenarios' : null)));
+            $description = $field !== null && isset($properties[$field]) ? schemaDescription($properties[$field]) : '';
+            $output .= '| `$' . $parameter->getName() . '` | `' . cell($type) . '` | ' . $default . ' | ' . ($field === null ? '' : '`' . $field . '`') . ' | ' . cell($description) . " |\n";
+        }
+
+        $output .= "\n";
+    }
+
+    return $output;
+}
+
+$files = [];
+$titles = AREAS + ['shared' => ['title' => 'Shared objects']];
+
+foreach (array_keys($titles) as $file) {
+    $output = "<!-- Generated by bin/generate-reference from the SDK and snapshots/v5. -->\n\n# " . $titles[$file]['title'] . " reference\n\n";
+
+    if ($file === 'shared') {
+        $output .= "Objects used by more than one area, and the metadata of every answer.\n\n";
+    } else {
+        $output .= "Every method of the " . strtolower($titles[$file]['title']) . " resources and every object they return. Types link to their section; objects used by several areas are in [shared objects](shared.md).\n\n";
+    }
+
+    if ($file !== 'shared') {
+        $output .= structureSection($file, $resourceMethods[$file]);
+        $output .= "## Methods\n\n";
+        $byResource = [];
+
+        foreach ($resourceMethods[$file] as [$resource, $method]) {
+            $byResource[$resource ?? ''][] = $method;
+        }
+
+        foreach ($byResource as $resource => $methods) {
+            $output .= resourceSection($file, $resource === '' ? null : $resource, $methods);
+        }
+
+        if (AREAS[$file]['enums'] !== []) {
+            $output .= "## Enums\n\n";
+
+            foreach (AREAS[$file]['enums'] as $enum) {
+                $output .= enumSection($enum);
+            }
+        }
+
+        if ($file === 'valuations') {
+            $output .= inputSection();
+        }
+    }
+
+    $sectionObjects = array_keys(array_filter($placement, fn (string $place, string $object) => $place === $file && $object !== 'RateLimit', ARRAY_FILTER_USE_BOTH));
+    usort($sectionObjects, fn (string $a, string $b) => strcmp(shortName($a), shortName($b)));
+
+    if ($sectionObjects !== [] || $file === 'shared') {
+        $output .= "## Response objects\n\n";
+        $output .= 'Every object implements the interface of the same name in `Contracts\\DTO`' . ($file === 'catalog' ? ' (`Contracts\\DTO\\Catalog` for the catalog)' : '') . ".\n\n";
+    }
+
+    foreach ($sectionObjects as $object) {
+        $output .= objectSection($object, $file);
+    }
+
+    if ($file === 'shared') {
+        $output .= rateLimitSection();
+    }
+
+    $files['docs/reference/' . $file . '.md'] = rtrim($output) . "\n";
+}
+
+$check = in_array('--check', $argv, true);
+$different = [];
+
+foreach ($files as $path => $content) {
+    if ($check) {
+        if (!is_file(ROOT . $path) || file_get_contents(ROOT . $path) !== $content) {
+            $different[] = $path;
+        }
+
+        continue;
+    }
+
+    @mkdir(dirname(ROOT . $path), 0777, true);
+    file_put_contents(ROOT . $path, $content);
+}
+
+if ($check && $different !== []) {
+    fwrite(STDERR, "Out of date, run php bin/generate-reference:\n" . implode("\n", $different) . "\n");
+    exit(1);
+}
+
+echo $check ? "The reference is up to date.\n" : 'Wrote ' . count($files) . " files.\n";

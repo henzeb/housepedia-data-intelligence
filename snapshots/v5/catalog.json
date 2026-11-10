@@ -1,0 +1,1067 @@
+{
+  "credit_price_eur": 0.05,
+  "data_points": [],
+  "free_tier": {
+    "conditions": {
+      "en": "To build and test your integration. Credit \"Data: Huispedia\".",
+      "nl": "Om je integratie te bouwen en te testen. Vermeld \"Data: Huispedia\"."
+    },
+    "credits_per_month": 200
+  },
+  "limits": {
+    "burst": 20,
+    "concurrency": 6,
+    "requests_per_second": 6,
+    "spend_cap_default_credits": 2000
+  },
+  "limits_by_plan": {
+    "free": {
+      "concurrency": 2,
+      "requests_per_second": 1,
+      "signal_calls_per_day": 500
+    },
+    "standard": {
+      "concurrency": 6,
+      "requests_per_second": 6,
+      "signal_calls_per_day": 20000
+    }
+  },
+  "packs": [
+    {
+      "credit_price_eur": 0.0417,
+      "credits": 600,
+      "id": "starter",
+      "interval": "month",
+      "name": "Starter",
+      "price_eur": 25.0,
+      "saving_percent": 17
+    },
+    {
+      "credit_price_eur": 0.0375,
+      "credits": 2000,
+      "id": "growth",
+      "interval": "month",
+      "name": "Growth",
+      "price_eur": 75.0,
+      "saving_percent": 25
+    },
+    {
+      "credit_price_eur": 0.0333,
+      "credits": 7500,
+      "id": "scale",
+      "interval": "month",
+      "name": "Scale",
+      "price_eur": 250.0,
+      "saving_percent": 33
+    },
+    {
+      "credit_price_eur": 0.03,
+      "credits": 25000,
+      "id": "pro",
+      "interval": "month",
+      "name": "Pro",
+      "price_eur": 750.0,
+      "saving_percent": 40
+    }
+  ],
+  "products": [
+    {
+      "cache_max_age": 3600,
+      "coverage": {},
+      "credits": 0,
+      "description": {
+        "en": "Find addresses and streets as you type.",
+        "nl": "Zoek adressen en straten terwijl je typt."
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/addresses/GET/v5/addresses/suggest",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/addresses/GET/v5/addresses/suggest"
+      },
+      "family": "addresses",
+      "fields": [],
+      "freshness": null,
+      "id": "address_suggest",
+      "method": "GET",
+      "multiplier": "none",
+      "name": {
+        "en": "Address autocomplete",
+        "nl": "Adres-autocomplete"
+      },
+      "path": "/v5/addresses/suggest",
+      "product_url": {},
+      "status": "live"
+    },
+    {
+      "cache_max_age": 3600,
+      "coverage": {},
+      "credits": 1,
+      "description": {
+        "en": "Checks an address and returns its standard form, with BAG ids and area.",
+        "nl": "Controleert een adres en geeft het in de standaardvorm terug, met BAG-id's en gebied."
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/addresses/GET/v5/addresses/{locator}",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/addresses/GET/v5/addresses/{locator}"
+      },
+      "family": "addresses",
+      "fields": [],
+      "freshness": null,
+      "id": "address",
+      "method": "GET",
+      "multiplier": "none",
+      "name": {
+        "en": "Address validation",
+        "nl": "Adresvalidatie"
+      },
+      "path": "/v5/addresses/{locator}",
+      "product_url": {},
+      "status": "live"
+    },
+    {
+      "cache_max_age": 3600,
+      "coverage": {},
+      "credits": 1,
+      "description": {
+        "en": "The nearest addresses to a coordinate.",
+        "nl": "De dichtstbijzijnde adressen bij een coördinaat."
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/addresses/GET/v5/addresses/reverse",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/addresses/GET/v5/addresses/reverse"
+      },
+      "family": "addresses",
+      "fields": [],
+      "freshness": null,
+      "id": "address_reverse",
+      "method": "GET",
+      "multiplier": "none",
+      "name": {
+        "en": "Reverse geocoding",
+        "nl": "Reverse geocoding"
+      },
+      "path": "/v5/addresses/reverse",
+      "product_url": {},
+      "status": "live"
+    },
+    {
+      "cache_max_age": 3600,
+      "coverage": {},
+      "credits": 2,
+      "description": {
+        "en": "Up to sixty fields per home, in groups.",
+        "nl": "Tot zestig kenmerken per woning, in groepen."
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/properties/GET/v5/properties/{locator}",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/properties/GET/v5/properties/{locator}"
+      },
+      "family": "properties",
+      "fields": [],
+      "freshness": null,
+      "id": "property",
+      "method": "GET",
+      "multiplier": "none",
+      "name": {
+        "en": "Property characteristics",
+        "nl": "Woningkenmerken"
+      },
+      "path": "/v5/properties/{locator}",
+      "product_url": {},
+      "status": "live"
+    },
+    {
+      "cache_max_age": 3600,
+      "coverage": {},
+      "credits": 1,
+      "description": {
+        "en": "The registered energy label with recording and validity dates.",
+        "nl": "Het geregistreerde energielabel met opname- en geldigheidsdatum."
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/properties/GET/v5/properties/{locator}/energy-label",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/properties/GET/v5/properties/{locator}/energy-label"
+      },
+      "family": "properties",
+      "fields": [],
+      "freshness": null,
+      "id": "property_energy_label",
+      "method": "GET",
+      "multiplier": "none",
+      "name": {
+        "en": "Energy label",
+        "nl": "Energielabel"
+      },
+      "path": "/v5/properties/{locator}/energy-label",
+      "product_url": {},
+      "status": "live"
+    },
+    {
+      "cache_max_age": 3600,
+      "coverage": {},
+      "credits": 2,
+      "description": {
+        "en": "The WOZ value per reference date since 2015, optionally indexed.",
+        "nl": "De WOZ-waarde per peildatum sinds 2015, optioneel geïndexeerd."
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/properties/GET/v5/properties/{locator}/woz",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/properties/GET/v5/properties/{locator}/woz"
+      },
+      "family": "properties",
+      "fields": [],
+      "freshness": null,
+      "id": "property_woz",
+      "method": "GET",
+      "multiplier": "none",
+      "name": {
+        "en": "WOZ value and history",
+        "nl": "WOZ-waarde en historie"
+      },
+      "path": "/v5/properties/{locator}/woz",
+      "product_url": {},
+      "status": "live"
+    },
+    {
+      "cache_max_age": 3600,
+      "coverage": {},
+      "credits": 1,
+      "description": {
+        "en": "Every address in a BAG building.",
+        "nl": "Alle adressen in een BAG-pand."
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/properties/GET/v5/buildings/{bag_pand_id}",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/properties/GET/v5/buildings/{bag_pand_id}"
+      },
+      "family": "properties",
+      "fields": [],
+      "freshness": null,
+      "id": "building",
+      "method": "GET",
+      "multiplier": "none",
+      "name": {
+        "en": "Building and units",
+        "nl": "Pand en VvE-eenheden"
+      },
+      "path": "/v5/buildings/{bag_pand_id}",
+      "product_url": {},
+      "status": "live"
+    },
+    {
+      "cache_max_age": 86400,
+      "coverage": {},
+      "credits": 2,
+      "description": {
+        "en": "",
+        "nl": ""
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/properties/GET/v5/properties/{locator}/parcel",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/properties/GET/v5/properties/{locator}/parcel"
+      },
+      "family": "properties",
+      "fields": [],
+      "freshness": null,
+      "id": "property_parcel",
+      "method": "GET",
+      "multiplier": "none",
+      "name": {
+        "en": "Parcel boundaries",
+        "nl": "Perceelgrenzen"
+      },
+      "path": "/v5/properties/{locator}/parcel",
+      "product_url": {},
+      "status": "planned"
+    },
+    {
+      "cache_max_age": 3600,
+      "coverage": {},
+      "credits": 2,
+      "description": {
+        "en": "The photo-assessed maintenance state of the home.",
+        "nl": "De op foto's beoordeelde onderhoudsstaat van de woning."
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/properties/GET/v5/properties/{locator}/condition",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/properties/GET/v5/properties/{locator}/condition"
+      },
+      "family": "properties",
+      "fields": [],
+      "freshness": null,
+      "id": "property_condition",
+      "method": "GET",
+      "multiplier": "none",
+      "name": {
+        "en": "Condition score",
+        "nl": "Conditiescore"
+      },
+      "path": "/v5/properties/{locator}/condition",
+      "product_url": {},
+      "status": "live"
+    },
+    {
+      "cache_max_age": 0,
+      "coverage": {},
+      "credits": 3,
+      "description": {
+        "en": "",
+        "nl": ""
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/properties/POST/v5/condition-scores",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/properties/POST/v5/condition-scores"
+      },
+      "family": "properties",
+      "fields": [],
+      "freshness": null,
+      "id": "condition_scores",
+      "method": "POST",
+      "multiplier": "photos",
+      "name": {
+        "en": "Condition score on photos",
+        "nl": "Conditiescore op foto's"
+      },
+      "path": "/v5/condition-scores",
+      "product_url": {},
+      "status": "planned"
+    },
+    {
+      "cache_max_age": 0,
+      "coverage": {},
+      "credits": 8,
+      "description": {
+        "en": "The current Huispedia home value with interval and confidence.",
+        "nl": "De actuele Huispedia Woningwaarde met interval en betrouwbaarheid."
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/valuations/GET/v5/properties/{locator}/valuation",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/valuations/GET/v5/properties/{locator}/valuation"
+      },
+      "family": "valuations",
+      "fields": [],
+      "freshness": null,
+      "id": "valuation",
+      "method": "GET",
+      "multiplier": "none",
+      "name": {
+        "en": "Home valuation",
+        "nl": "Woningwaarde"
+      },
+      "path": "/v5/properties/{locator}/valuation",
+      "product_url": {},
+      "status": "live"
+    },
+    {
+      "cache_max_age": 0,
+      "coverage": {},
+      "credits": 20,
+      "description": {
+        "en": "Valuation with your own inputs and what-if scenarios.",
+        "nl": "Waardering met je eigen invoer en wat-als-scenario's."
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/valuations/POST/v5/valuations/scenarios",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/valuations/POST/v5/valuations/scenarios"
+      },
+      "family": "valuations",
+      "fields": [],
+      "freshness": null,
+      "id": "valuation_scenarios",
+      "method": "POST",
+      "multiplier": "scenarios",
+      "name": {
+        "en": "Scenario valuation",
+        "nl": "Scenariowaardering"
+      },
+      "path": "/v5/valuations/scenarios",
+      "product_url": {},
+      "status": "live"
+    },
+    {
+      "cache_max_age": 0,
+      "contact": "sales@huispedia.nl",
+      "contract": true,
+      "coverage": {},
+      "credits": 12,
+      "description": {
+        "en": "Valuation with reference homes, neighbourhood figures and WOZ.",
+        "nl": "Waardering met referentiewoningen, buurtcijfers en WOZ."
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/valuations/GET/v5/properties/{locator}/valuation/plus",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/valuations/GET/v5/properties/{locator}/valuation/plus"
+      },
+      "family": "valuations",
+      "fields": [],
+      "freshness": null,
+      "id": "valuation_plus",
+      "method": "GET",
+      "multiplier": "none",
+      "name": {
+        "en": "Home valuation plus",
+        "nl": "Woningwaarde+"
+      },
+      "path": "/v5/properties/{locator}/valuation/plus",
+      "product_url": {},
+      "status": "live"
+    },
+    {
+      "cache_max_age": 0,
+      "contact": "sales@huispedia.nl",
+      "contract": true,
+      "coverage": {},
+      "credits": 8,
+      "description": {
+        "en": "Comparable homes sold nearby, with their distance.",
+        "nl": "Vergelijkbare woningen die in de buurt zijn verkocht, met hun afstand."
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/valuations/GET/v5/properties/{locator}/references",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/valuations/GET/v5/properties/{locator}/references"
+      },
+      "family": "valuations",
+      "fields": [],
+      "freshness": null,
+      "id": "references",
+      "method": "GET",
+      "multiplier": "none",
+      "name": {
+        "en": "Reference homes",
+        "nl": "Referentiewoningen"
+      },
+      "path": "/v5/properties/{locator}/references",
+      "product_url": {},
+      "status": "live"
+    },
+    {
+      "cache_max_age": 0,
+      "coverage": {},
+      "credits": 3,
+      "description": {
+        "en": "Monthly valuation history per home.",
+        "nl": "Maandelijkse waarderingshistorie per woning."
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/valuations/GET/v5/properties/{locator}/valuation/history",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/valuations/GET/v5/properties/{locator}/valuation/history"
+      },
+      "family": "valuations",
+      "fields": [],
+      "freshness": null,
+      "id": "valuation_history",
+      "method": "GET",
+      "multiplier": "none",
+      "name": {
+        "en": "Valuation history",
+        "nl": "Waardehistorie"
+      },
+      "path": "/v5/properties/{locator}/valuation/history",
+      "product_url": {},
+      "status": "live"
+    },
+    {
+      "cache_max_age": 0,
+      "coverage": {},
+      "credits": 20,
+      "description": {
+        "en": "",
+        "nl": ""
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/valuations/GET/v5/properties/{locator}/valuation/energy-label-impact",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/valuations/GET/v5/properties/{locator}/valuation/energy-label-impact"
+      },
+      "family": "valuations",
+      "fields": [],
+      "freshness": null,
+      "id": "energy_label_impact",
+      "method": "GET",
+      "multiplier": "none",
+      "name": {
+        "en": "Energy label impact",
+        "nl": "Duurzaamheidswaarde"
+      },
+      "path": "/v5/properties/{locator}/valuation/energy-label-impact",
+      "product_url": {},
+      "status": "planned"
+    },
+    {
+      "cache_max_age": 0,
+      "coverage": {},
+      "credits": 8,
+      "description": {
+        "en": "",
+        "nl": ""
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/valuations/POST/v5/batch/valuations",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/valuations/POST/v5/batch/valuations"
+      },
+      "family": "valuations",
+      "fields": [],
+      "freshness": null,
+      "id": "batch_valuations",
+      "method": "POST",
+      "multiplier": "rows",
+      "name": {
+        "en": "Bulk valuation",
+        "nl": "Bulkwaardering"
+      },
+      "path": "/v5/batch/valuations",
+      "product_url": {},
+      "status": "planned"
+    },
+    {
+      "cache_max_age": 0,
+      "coverage": {},
+      "credits": 100,
+      "description": {
+        "en": "",
+        "nl": ""
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/valuations/POST/v5/properties/{locator}/valuation/report",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/valuations/POST/v5/properties/{locator}/valuation/report"
+      },
+      "family": "valuations",
+      "fields": [],
+      "freshness": null,
+      "id": "valuation_report",
+      "method": "POST",
+      "multiplier": "none",
+      "name": {
+        "en": "Valuation report",
+        "nl": "Waarderapport"
+      },
+      "path": "/v5/properties/{locator}/valuation/report",
+      "product_url": {},
+      "status": "planned"
+    },
+    {
+      "cache_max_age": 3600,
+      "contact": "sales@huispedia.nl",
+      "contract": true,
+      "coverage": {},
+      "credits": 2,
+      "description": {
+        "en": "The sales of the home and the listings they came from.",
+        "nl": "De verkopen van de woning en de aanbiedingen waaruit ze voortkwamen."
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/properties/GET/v5/properties/{locator}/transactions",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/properties/GET/v5/properties/{locator}/transactions"
+      },
+      "family": "transactions",
+      "fields": [],
+      "freshness": null,
+      "id": "transactions",
+      "method": "GET",
+      "multiplier": "records",
+      "name": {
+        "en": "Transactions",
+        "nl": "Transacties"
+      },
+      "path": "/v5/properties/{locator}/transactions",
+      "product_url": {},
+      "status": "live"
+    },
+    {
+      "cache_max_age": 86400,
+      "coverage": {},
+      "credits": 1,
+      "description": {
+        "en": "Name, codes, outline and parents, from neighbourhood to national.",
+        "nl": "Naam, codes, omtrek en bovenliggende gebieden, van buurt tot land."
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/areas-and-market/GET/v5/areas/{area}",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/areas-and-market/GET/v5/areas/{area}"
+      },
+      "family": "areas",
+      "fields": [],
+      "freshness": null,
+      "id": "area",
+      "method": "GET",
+      "multiplier": "none",
+      "name": {
+        "en": "Area",
+        "nl": "Gebied"
+      },
+      "path": "/v5/areas/{area}",
+      "product_url": {},
+      "status": "live"
+    },
+    {
+      "cache_max_age": 86400,
+      "coverage": {},
+      "credits": 1,
+      "description": {
+        "en": "The area containing a coordinate or postcode.",
+        "nl": "Het gebied waarin een coördinaat of postcode ligt."
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/areas-and-market/GET/v5/areas/lookup",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/areas-and-market/GET/v5/areas/lookup"
+      },
+      "family": "areas",
+      "fields": [],
+      "freshness": null,
+      "id": "area_lookup",
+      "method": "GET",
+      "multiplier": "none",
+      "name": {
+        "en": "Area lookup",
+        "nl": "Gebied opzoeken"
+      },
+      "path": "/v5/areas/lookup",
+      "product_url": {},
+      "status": "live"
+    },
+    {
+      "cache_max_age": 86400,
+      "coverage": {},
+      "credits": 3,
+      "description": {
+        "en": "Market, housing stock and environment per area.",
+        "nl": "Markt, woningvoorraad en leefomgeving per gebied."
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/areas-and-market/GET/v5/areas/{area}/stats",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/areas-and-market/GET/v5/areas/{area}/stats"
+      },
+      "family": "areas",
+      "fields": [],
+      "freshness": null,
+      "id": "area_stats",
+      "method": "GET",
+      "multiplier": "none",
+      "name": {
+        "en": "Area statistics",
+        "nl": "Buurtstatistieken"
+      },
+      "path": "/v5/areas/{area}/stats",
+      "product_url": {},
+      "status": "live"
+    },
+    {
+      "cache_max_age": 86400,
+      "coverage": {},
+      "credits": 2,
+      "description": {
+        "en": "Price per m² per month, up to national level.",
+        "nl": "Prijs per m² per maand, tot nationaal niveau."
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/areas-and-market/GET/v5/areas/{area}/trends",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/areas-and-market/GET/v5/areas/{area}/trends"
+      },
+      "family": "areas",
+      "fields": [],
+      "freshness": null,
+      "id": "area_trends",
+      "method": "GET",
+      "multiplier": "none",
+      "name": {
+        "en": "Price index",
+        "nl": "Prijsindex"
+      },
+      "path": "/v5/areas/{area}/trends",
+      "product_url": {},
+      "status": "live"
+    },
+    {
+      "cache_max_age": 86400,
+      "coverage": {},
+      "credits": 3,
+      "description": {
+        "en": "",
+        "nl": ""
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/areas-and-market/GET/v5/areas/{area}/bidding",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/areas-and-market/GET/v5/areas/{area}/bidding"
+      },
+      "family": "areas",
+      "fields": [],
+      "freshness": null,
+      "id": "area_bidding",
+      "method": "GET",
+      "multiplier": "none",
+      "name": {
+        "en": "Bidding behaviour",
+        "nl": "Biedgedrag"
+      },
+      "path": "/v5/areas/{area}/bidding",
+      "product_url": {},
+      "status": "planned"
+    },
+    {
+      "cache_max_age": 86400,
+      "coverage": {},
+      "credits": 2,
+      "description": {
+        "en": "Population, households and age per neighbourhood (CBS).",
+        "nl": "Bevolking, huishoudens en leeftijd per buurt (CBS)."
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/areas-and-market/GET/v5/areas/{area}/demographics",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/areas-and-market/GET/v5/areas/{area}/demographics"
+      },
+      "family": "areas",
+      "fields": [],
+      "freshness": null,
+      "id": "area_demographics",
+      "method": "GET",
+      "multiplier": "none",
+      "name": {
+        "en": "Demographics",
+        "nl": "Demografie"
+      },
+      "path": "/v5/areas/{area}/demographics",
+      "product_url": {},
+      "status": "live"
+    },
+    {
+      "cache_max_age": 86400,
+      "coverage": {},
+      "credits": 2,
+      "description": {
+        "en": "Nearest amenities and counts in the neighbourhood.",
+        "nl": "Dichtstbijzijnde voorzieningen en aantallen in de buurt."
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/areas-and-market/GET/v5/properties/{locator}/surroundings",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/areas-and-market/GET/v5/properties/{locator}/surroundings"
+      },
+      "family": "areas",
+      "fields": [],
+      "freshness": null,
+      "id": "surroundings",
+      "method": "GET",
+      "multiplier": "none",
+      "name": {
+        "en": "Surroundings",
+        "nl": "Voorzieningen en afstanden"
+      },
+      "path": "/v5/properties/{locator}/surroundings",
+      "product_url": {},
+      "status": "live"
+    },
+    {
+      "cache_max_age": 86400,
+      "coverage": {},
+      "credits": 3,
+      "description": {
+        "en": "Foundation risk, subsidence, noise and air quality per address.",
+        "nl": "Funderingsrisico, bodemdaling, geluid en luchtkwaliteit per adres."
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/areas-and-market/GET/v5/properties/{locator}/environment",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/areas-and-market/GET/v5/properties/{locator}/environment"
+      },
+      "family": "areas",
+      "fields": [],
+      "freshness": null,
+      "id": "environment",
+      "method": "GET",
+      "multiplier": "none",
+      "name": {
+        "en": "Environment",
+        "nl": "Leefomgeving"
+      },
+      "path": "/v5/properties/{locator}/environment",
+      "product_url": {},
+      "status": "live"
+    },
+    {
+      "cache_max_age": 0,
+      "coverage": {},
+      "credits": 3,
+      "description": {
+        "en": "",
+        "nl": ""
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/properties/GET/v5/properties/{locator}/listing",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/properties/GET/v5/properties/{locator}/listing"
+      },
+      "family": "listings",
+      "fields": [],
+      "freshness": null,
+      "id": "listing",
+      "method": "GET",
+      "multiplier": "none",
+      "name": {
+        "en": "Listing status",
+        "nl": "Woningstatus en vraagprijs"
+      },
+      "path": "/v5/properties/{locator}/listing",
+      "product_url": {},
+      "status": "planned"
+    },
+    {
+      "cache_max_age": 0,
+      "coverage": {},
+      "credits": 3,
+      "description": {
+        "en": "",
+        "nl": ""
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/properties/GET/v5/properties/{locator}/listing/history",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/properties/GET/v5/properties/{locator}/listing/history"
+      },
+      "family": "listings",
+      "fields": [],
+      "freshness": null,
+      "id": "listing_history",
+      "method": "GET",
+      "multiplier": "none",
+      "name": {
+        "en": "Listing history",
+        "nl": "Listing-historie"
+      },
+      "path": "/v5/properties/{locator}/listing/history",
+      "product_url": {},
+      "status": "planned"
+    },
+    {
+      "cache_max_age": 0,
+      "coverage": {},
+      "credits": 1,
+      "description": {
+        "en": "",
+        "nl": ""
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/properties/POST/v5/monitors",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/properties/POST/v5/monitors"
+      },
+      "family": "listings",
+      "fields": [],
+      "freshness": null,
+      "id": "monitors",
+      "method": "POST",
+      "multiplier": "none",
+      "name": {
+        "en": "Monitors and webhooks",
+        "nl": "Monitors en webhooks"
+      },
+      "path": "/v5/monitors",
+      "product_url": {},
+      "status": "planned"
+    },
+    {
+      "cache_max_age": 0,
+      "coverage": {},
+      "credits": 0,
+      "description": {
+        "en": "",
+        "nl": ""
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/account/GET/v5/account",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/account/GET/v5/account"
+      },
+      "family": "account",
+      "fields": [],
+      "freshness": null,
+      "id": "account",
+      "method": "GET",
+      "multiplier": "none",
+      "name": {
+        "en": "Account",
+        "nl": "Account"
+      },
+      "path": "/v5/account",
+      "product_url": {},
+      "status": "live"
+    },
+    {
+      "cache_max_age": 0,
+      "coverage": {},
+      "credits": 0,
+      "description": {
+        "en": "",
+        "nl": ""
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/account/GET/v5/account/usage",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/account/GET/v5/account/usage"
+      },
+      "family": "account",
+      "fields": [],
+      "freshness": null,
+      "id": "account_usage",
+      "method": "GET",
+      "multiplier": "none",
+      "name": {
+        "en": "Usage",
+        "nl": "Verbruik"
+      },
+      "path": "/v5/account/usage",
+      "product_url": {},
+      "status": "live"
+    },
+    {
+      "cache_max_age": 0,
+      "coverage": {},
+      "credits": 0,
+      "description": {
+        "en": "",
+        "nl": ""
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/account/GET/v5/account/requests",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/account/GET/v5/account/requests"
+      },
+      "family": "account",
+      "fields": [],
+      "freshness": null,
+      "id": "account_requests",
+      "method": "GET",
+      "multiplier": "none",
+      "name": {
+        "en": "Request log",
+        "nl": "Request-log"
+      },
+      "path": "/v5/account/requests",
+      "product_url": {},
+      "status": "live"
+    },
+    {
+      "cache_max_age": 300,
+      "coverage": {},
+      "credits": 0,
+      "description": {
+        "en": "",
+        "nl": ""
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/catalogue/GET/v5/catalog",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/catalogue/GET/v5/catalog"
+      },
+      "family": "account",
+      "fields": [],
+      "freshness": null,
+      "id": "catalog",
+      "method": "GET",
+      "multiplier": "none",
+      "name": {
+        "en": "Catalogue",
+        "nl": "Catalogus"
+      },
+      "path": "/v5/catalog",
+      "product_url": {},
+      "status": "live"
+    },
+    {
+      "cache_max_age": 0,
+      "coverage": {},
+      "credits": 0,
+      "description": {
+        "en": "",
+        "nl": ""
+      },
+      "docs_url": {
+        "en": "https://huispedia.dev/en/docs/endpoints/#tag/account/GET/v5/jobs/{job_id}",
+        "nl": "https://huispedia.dev/nl/docs/endpoints/#tag/account/GET/v5/jobs/{job_id}"
+      },
+      "family": "account",
+      "fields": [],
+      "freshness": null,
+      "id": "jobs",
+      "method": "GET",
+      "multiplier": "none",
+      "name": {
+        "en": "Jobs",
+        "nl": "Taken"
+      },
+      "path": "/v5/jobs/{job_id}",
+      "product_url": {},
+      "status": "planned"
+    }
+  ],
+  "sources": [
+    {
+      "attribution": "Huispedia",
+      "cadence": "hourly",
+      "id": "avm4",
+      "licence": "Proprietary",
+      "name": "Huispedia AVM4",
+      "url": "https://huispedia.nl"
+    },
+    {
+      "attribution": "Basisregistratie Adressen en Gebouwen",
+      "cadence": "daily",
+      "id": "bag",
+      "licence": "CC0",
+      "name": "BAG (Kadaster)",
+      "url": "https://www.kadaster.nl/zakelijk/registraties/basisregistraties/bag"
+    },
+    {
+      "attribution": "CBS",
+      "cadence": "yearly",
+      "id": "cbs",
+      "licence": "CC BY 4.0",
+      "name": "CBS wijk- en buurtkaart",
+      "url": "https://www.cbs.nl"
+    },
+    {
+      "attribution": "Huispedia",
+      "cadence": "hourly",
+      "id": "huispedia",
+      "licence": "Proprietary",
+      "name": "Huispedia",
+      "url": "https://huispedia.nl"
+    },
+    {
+      "attribution": "Kadaster",
+      "cadence": "daily",
+      "id": "kadaster",
+      "licence": "Kadaster doorleveringsovereenkomst",
+      "name": "Kadaster transacties",
+      "url": "https://www.kadaster.nl"
+    },
+    {
+      "attribution": "© OpenStreetMap contributors",
+      "cadence": "monthly",
+      "id": "osm",
+      "licence": "ODbL",
+      "name": "OpenStreetMap",
+      "url": "https://www.openstreetmap.org"
+    },
+    {
+      "attribution": "RIVM",
+      "cadence": "yearly",
+      "id": "rivm",
+      "licence": "Open data",
+      "name": "RIVM atlas leefomgeving",
+      "url": "https://www.atlasleefomgeving.nl"
+    },
+    {
+      "attribution": "RVO EP-Online",
+      "cadence": "daily",
+      "id": "rvo",
+      "licence": "Open data",
+      "name": "RVO energielabels (EP-Online)",
+      "url": "https://www.ep-online.nl"
+    },
+    {
+      "attribution": "SkyGeo",
+      "cadence": "yearly",
+      "id": "skygeo",
+      "licence": "Licensed",
+      "name": "SkyGeo bodemdaling",
+      "url": "https://skygeo.com"
+    },
+    {
+      "attribution": "WOZ-waardeloket",
+      "cadence": "daily",
+      "id": "woz",
+      "licence": "Open data",
+      "name": "WOZ-waardeloket",
+      "url": "https://www.wozwaardeloket.nl"
+    }
+  ]
+}
