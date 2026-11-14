@@ -3,6 +3,10 @@
 All notable changes to `henzeb/housepedia-data-intelligence` are documented in this file. The
 project follows [semantic versioning](https://semver.org).
 
+## [Unreleased]
+
+- Requires `psr/simple-cache` `^3.0`.
+
 ## [1.0.0] - 2026-11-11
 
 First release.

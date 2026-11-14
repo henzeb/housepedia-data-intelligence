@@ -549,17 +549,16 @@ catalog objects). The credits a live test run spends are estimated in 13.12.
 ## 12. Platform and dependencies
 
 12.1. PHP `^8.3`, including PHP 8.6; no runtime or development dependency may block
-installation on a supported PHP version. CI covers PHP 8.3, 8.4, 8.5 and 8.6; the 8.6 jobs
-run with `continue-on-error` until PHP 8.6 is released (planned 19 November 2026), because
-setup-php installs a nightly build until then. CI installs with Composer's `notify-on-install` disabled, so
+installation on a supported PHP version. CI runs the tests on the oldest and the newest
+supported version, PHP 8.3 and 8.6. CI installs with Composer's `notify-on-install` disabled, so
 CI runs do not count as Packagist downloads.
 
-12.2. Runtime dependencies: `php-http/discovery ^1.19`, `psr/http-client ^1.0`,
+12.2. Runtime dependencies: `php-http/discovery ^1.19`, `psr/http-client ^1.0.1`,
 `psr/http-client-implementation ^1.0`, `psr/http-factory ^1.1`,
 `psr/http-factory-implementation ^1.0`, `psr/http-message ^1.1|^2.0`,
-`psr/simple-cache ^2.0|^3.0`, `composer-runtime-api ^2.0`.
+`psr/simple-cache ^3.0`, `composer-runtime-api ^2.0`.
 
-12.3. Development dependencies: `guzzlehttp/guzzle ^7.8|^8.0`, `pestphp/pest ^4.0|^5.0`,
+12.3. Development dependencies: `guzzlehttp/guzzle ^7.15.2|^8.0`, `pestphp/pest ^4.3.2|^5.0`,
 `laravel/pint ^1.30`, `php-http/mock-client ^1.6.1`, `php-http/httplug ^2.4.1`,
 `phpstan/phpstan ^2.1`.
 
@@ -571,7 +570,8 @@ PHPUnit 13. `phpunit.xml` sets `failOnDeprecation`, so PHP deprecations fail the
 
 ## 13. Quality requirements
 
-13.1. PHPStan at level `max` with bleeding edge reports no errors on `src`.
+13.1. PHPStan at level `max` with bleeding edge reports no errors on `src`. The configuration is
+`phpstan.neon.dist`; a local `phpstan.neon` overrides it and is not committed.
 
 13.2. Public methods have native parameter and return types; lists and maps carry PHPDoc
 generics (`list<AddressSuggestion>`, `array<string, NearestPlace|null>`).
@@ -640,9 +640,10 @@ interface of the same name with exactly the same public instance methods, that e
 has an implementation, and that the client returns the `Contracts` interfaces. `tests/Unit/VersionTest.php` covers the
 normalisation and order of versions (3a.4, 3a.5).
 
-13.5. CI (`.github/workflows/tests.yml`) runs `composer validate --strict`, installs with
-`prefer-lowest` and `prefer-stable`, runs PHPStan and Pest on every PHP
-version of 12.1.
+13.5. CI (`.github/workflows/tests.yml`) lints `src` and `tests` on PHP 8.6, then runs Pint
+(13.13), PHPStan (13.1) and the tests. PHPStan runs once on PHP 8.6 with `prefer-stable`. The tests
+(`vendor/bin/pest --compact`) run on PHP 8.3 and 8.6, each with `prefer-lowest` and
+`prefer-stable`.
 
 13.5a. `.github/workflows/api-snapshot.yml` runs on working days at 17:17 UTC and on request. It fetches
 `GET /v5/catalog` and `/openapi.json` without an API key, writes them with sorted keys to
@@ -728,8 +729,8 @@ and `references()` (8) add 20 credits and `transactions()` 2 credits per record.
 
 13.13. Laravel Pint (`laravel/pint`, a development dependency) checks the code style of `src`
 and `tests` with the `psr12` preset from `pint.json`. `composer format` fixes the style and
-`composer format-check` reports files that differ. A `style` job in
-`.github/workflows/tests.yml` runs `vendor/bin/pint --test` once on PHP 8.4 with
+`composer format-check` reports files that differ. A `pint` job in
+`.github/workflows/tests.yml` runs `vendor/bin/pint --test` once on PHP 8.6 with
 `prefer-stable`. `pint.json` is not part of the Composer package.
 
 13.14. `SECURITY.md` says which versions get security fixes (the latest minor release of the
@@ -920,9 +921,9 @@ Record for each step: pass/fail, the request id (`meta()->requestId()` or the ex
 
 ## 17. Automated test status
 
-| Tests      | PHPStan (max) | Coverage | Dependency sets verified locally         |
-|------------|---------------|----------|------------------------------------------|
-| 649 passed | no errors     | 100%     | prefer-lowest and prefer-stable, PHP 8.4 |
+| Tests      | PHPStan (max) | Coverage | Dependency sets verified locally                           |
+|------------|---------------|----------|------------------------------------------------------------|
+| 649 passed | no errors     | 100%     | prefer-lowest and prefer-stable, PHP 8.3, 8.4, 8.5 and 8.6 |
 
 The `Unit` and `Integration` suites use mocked HTTP responses: fixtures generated from the
 OpenAPI schemas, the quickstart valuation sample and the live catalog response.
@@ -951,6 +952,6 @@ the keys of `surroundings()`, a raw request against `energyLabel()`, caching (a 
 `find()` without request and without `rateLimit()`, `withoutCache()`, a dated `valuation()`
 charged twice), usage and the request log. The balance dropped by exactly the credits
 `meta()` reported. Not run: the scenario item and a 422 for a home without data.
-PHP 8.6.0RC4 was verified locally in a container: dependencies install (Pest 5.3.5,
-PHPUnit 13.4.5, paratest 7.27.5), PHPStan reports no errors and all 162 tests pass with
-`failOnDeprecation`. PHP 8.3 is only covered by CI.
+On 2026-11-14 the `Unit` and `Integration` suites passed on PHP 8.3, 8.4, 8.5 and 8.6.0RC4, each
+with `prefer-lowest` and `prefer-stable`, with `failOnDeprecation`; PHPStan and Pint reported no
+errors on PHP 8.6.
